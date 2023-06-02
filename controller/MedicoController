@@ -1,0 +1,111 @@
+var connection = require("../db/connection.js");
+
+class MedicoController {
+
+    getAll(req, res) {
+        const sql = "SELECT * FROM medico";
+        connection.query(sql, (err, data) => {
+
+            if (err) {
+                res.json({ "erro": "Erro ao obter medico." });
+            }
+            else {
+                res.json(data);
+            }
+        });
+    }
+
+
+    getById(req, res) {
+        const id = req.params["_id"];
+        if (id) {
+            const sql = "SELECT * FROM medico WHERE cod_med = ?;";
+            const params = [
+                id
+            ];
+            connection.query(sql, params, (err, data) => {
+                if (err) {
+                    res.json({ "error": "Erro ao obter médico" });
+                } else {
+                    res.json(data[0] ??  { "erro": "não existe médico com esse codigo" });
+                }
+            });
+        }
+    }
+    add(req, res) {
+        const nome = req.body["nome"];
+        const crm = req.body["crm"];
+        const especialidade = req.body["especialidade"];
+        if (!nome) {
+            res.json({ "erro": "campo nome não pode ser vazio" });
+        }else if(!crm){
+            res.json({ "erro": "campo crm não pode ser vazio" });
+        }else if(!especialidade){
+            res.json({ "erro": "campo especialidade não pode ser vazio" });
+        } else {
+            const sql = " INSERT INTO medico" +
+                "(cod_med, nome, crm, especialidade)" +
+                "VALUES(0,?,?,?);"
+            const params = [
+                nome,
+                crm,
+                especialidade
+            ];
+            connection.query(sql, params, (err, data) => {
+                if (err) {
+                    res.json({ "erro": "Erro ao inserir a medico." });
+                    console.log(err);
+                } else {
+                    res.json({ "mensagem": "medico inserido com sucesso" });
+                }
+            });
+        }
+    }
+    update(req, res) {
+        const id = req.params["_id"];
+        if (id) {
+            const nome = req.body["nome"];
+            const crm = req.body["crm"];
+            const especialidade = req.body["especialidade"];
+            const sql = "UPDATE medico SET crm = ?, nome = ?, especialidade = ? WHERE cod_med = ?"
+            const values = [
+                crm,
+                nome,
+                especialidade,
+                id
+            ];
+
+            connection.query(sql, values, (err, data) => {
+                if (err) {
+                    res.json({ "Mensagem": "Erro ao atualizar o médico" });
+                    console.log(err);
+                } else {
+                    res.json({ "Mensagem": "Médico atualizado com sucesso" });
+                }
+            });
+        }
+    }
+
+    delete(req, res) {
+        const id = req.params["_id"];
+        if (id) {
+            const sql = "DELETE FROM medico WHERE cod_med = ?;";
+            const values = [
+                id
+            ];
+            connection.query(sql, values, (err, data) => {
+                if (err) {
+                    res.json({ "Mensagem": " Erro ao deletar médico" });
+                    console.log(err);
+                } else {
+                    res.json({ "Mensagem": "Médico deletado com sucesso!" });
+                }
+
+            });
+
+        }
+    }
+}
+    
+
+module.exports = new MedicoController;

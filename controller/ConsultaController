@@ -1,0 +1,151 @@
+const { response } = require("express");
+var connection = require("../db/connection.js");
+
+class ConsultaController {
+    getAll(req, res) {
+        const sql = "SELECT c.cod_con, " +
+            "c.data_hora_consulta, " +
+            "c.procedimento, " +
+            "c.valor, " +
+            "m.cod_med, " +
+            "m.nome, " +
+            "m.crm, " +
+            "m.especialidade, " +
+            "p.cod_pac, " +
+            "p.nome, " +
+            "p.idade, " +
+            "p.cpf " +
+
+            "from consulta c " +
+            "INNER JOIN paciente p " +
+            "ON (c.cod_pac = p.cod_pac) " +
+            "INNER JOIN medico m " +
+            "ON (c.cod_med = m.cod_med);";
+        connection.query(sql, (err, data) => {
+            if (err) {
+                res.json({ "erro": "Erro ao obter consulta" });
+            } else {
+                res.json(data);
+            }
+        });
+    }
+    getById(req, res) {
+        const id = req.params["_id"];
+        const sql = "SELECT c.cod_con, " +
+            "c.data_hora_consulta, " +
+            "c.procedimento, " +
+            "c.valor, " +
+            "m.cod_med, " +
+            "m.nome, " +
+            "m.crm, " +
+            "m.especialidade, " +
+            "p.cod_pac, " +
+            "p.nome, " +
+            "p.idade, " +
+            "p.cpf " +
+
+            "from consulta c " +
+            "INNER JOIN paciente p " +
+            "ON (c.cod_pac = p.cod_pac) " +
+            "INNER JOIN medico m " +
+            "ON (c.cod_med = m.cod_med) WHERE cod_con = ?";
+        const params = [
+            id
+        ];
+        connection.query(sql, params, (err, data) => {
+            if (err) {
+                res.json({ "erro": "Erro ao obter consulta" });
+            } else {
+                res.json(data);
+
+            }
+        });
+    }
+
+    add(req, res) {
+        const dataHoraConsulta = req.body["data_hora_consulta"];
+        const procedimento = req.body["procedimento"];
+        const valor = req.body["valor"];
+        const codMed = req.body["cod_med"];
+        const codPac = req.body["cod_pac"];
+
+        if (!dataHoraConsulta) {
+            res.json({ "Erro": "o campo Data/Hora Consulta é obrigatório" });
+        } else if (!procedimento) {
+            res.json({ "Erro": "o campo procedimento é obrigatório" });
+        } else if (!valor) {
+            res.json({ "Erro": "o campo valor é obrigatório" });
+        } else if (!codMed) {
+            res.json({ "Erro": "o campo codMed é obrigatório" });
+        } else if (!codPac) {
+            res.json({ "Erro": "o campo codPac é obrigatório" });
+        } else {
+            const sqlCon = "INSERT INTO consulta(cod_con, data_hora_consulta,procedimento,valor,cod_med,cod_pac) VALUES (0,?,?,?,?,?)";
+            const params = [
+                dataHoraConsulta,
+                procedimento,
+                valor,
+                codMed,
+                codPac
+            ];
+            connection.query(sqlCon, params, (err, data) => {
+                if (err) {
+                    console.log(err);
+                    res.json({ "erro": "Erro ao inserir a consulta." });
+                } else {
+                    res.json({ "mensagem": "Consulta cadastrada com sucesso" });
+                }
+            });
+        }
+    }
+
+    update(req, res) {
+        const id = req.params["_id"];
+        if (id) {
+            const dataHoraConsulta = req.body["data_hora_consulta"];
+            const procedimento = req.body["procedimento"];
+            const valor = req.body["valor"];
+            const codMed = req.body["cod_med"];
+            const codPac = req.body["cod_pac"];
+            const sql = "UPDATE consulta set data_hora_consulta =?, procedimento =?, valor =?, cod_med =?, cod_pac =? WHERE  cod_con = ?";
+            const values = [
+                dataHoraConsulta,
+                procedimento,
+                valor,
+                codMed,
+                codPac,
+                id
+            ];
+
+            connection.query(sql, values, (err, data) => {
+                if (err) {
+                    res.json({ "Mensagem": "Erro ao atualizar a consulta" });
+                    console.log(err)
+                } else {
+                    res.json({ "Mensagem": "Consulta atualizada com sucesso" });
+                }
+            });
+        }
+    }
+
+    delete(req, res) {
+        const id = req.params["_id"];
+        if (id) {
+            const sql = "DELETE FROM consulta WHERE cod_con = ?;";
+            const values = [
+                id
+            ];
+            connection.query(sql,values,(err,data)=>{
+                if (err) {
+                    res.json({ "Mensagem": "Erro ao deletar consulta" });
+                    console.log(err);
+                } else {
+                    res.json({ "Mensagem": "Consulta deletada com sucesso!" });
+                }
+            });
+        }
+    }
+}
+
+
+module.exports = new ConsultaController;

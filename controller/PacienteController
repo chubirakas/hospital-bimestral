@@ -1,0 +1,108 @@
+var connection = require("../db/connection.js");
+
+class PacienteController{
+    getAll(req,res){
+        const sql = "SELECT * FROM paciente";
+        connection.query(sql,(err, data)=>{
+           if (err) {
+            res.json({"Mensagem":"erro ao obter pacientes"});
+           } else {
+            res.json(data);
+           } 
+        });
+
+    }
+
+    getById(req,res){
+        const id = req.params["_id"];
+      if (id) {
+        const sql = "SELECT * FROM paciente WHERE cod_pac = ?;";
+        const params = [
+            id
+        ];
+
+        connection.query(sql, params, (err, data)=>{
+            if (err) {
+                res.json({"Mensagem":"Erro ao obter paciente de id "+id});
+                console.log(err);
+            } else {
+                res.json(data[0] ?? {"erro":"não existe paciente com esse id"});
+            }
+        });
+      }
+    }
+
+    add(req,res){
+        const nome = req.body["nome"];
+        const idade =  req.body["idade"];
+        const cpf =  req.body["cpf"];
+
+        if (!nome) {
+            res.json({ "erro": "campo nome não pode ser vazio" });
+        } else if(!idade){
+            res.json({ "erro": "campo idade não pode ser vazio" }); 
+        }else if(!cpf){
+            res.json({ "erro": "campo cpf não pode ser vazio" });
+        }else{
+            const sql = "INSERT INTO paciente (cod_pac, nome, idade, cpf) VALUES (0,?,?,?);"
+            const params =[
+                nome,
+                idade,
+                cpf
+            ];
+
+            connection.query(sql, params, (err, data)=>{
+                if (err) {
+                    res.json({"erro":"erro ao inserir Paciente"});
+                    console.log(err);
+                } else {
+                    res.json({ "mensagem": "paciente inserido com sucesso" });
+                }
+            });
+        }
+    }
+    update(req,res){
+        const id = req.params["_id"];
+        if(id){
+            const nome = req.body["nome"];
+            const idade = req.body["idade"];
+            const cpf = req.body["cpf"];
+            const cod_pac = req.body["cod_pac"];
+            const sql = "UPDATE paciente set nome =?, idade =?, cpf =? WHERE  cod_pac = ?";
+            const values = [
+                nome,
+                idade,
+                cpf,
+                id
+            ];
+
+            connection.query(sql,values,(err,data) =>{
+                if(err){
+                    res.json({"Mensagem": "Erro ao atualizar o paciente"});
+                    console.log(err);
+                }else{
+                    res.json({ "Mensagem": "Paciente atualizado com sucesso"});
+                }
+            });
+            }
+    }   
+    delete(req,res){
+        const id = req.params["_id"];
+        if(id){
+            const sql = "DELETE FROM paciente WHERE cod_pac =?;";
+            const values = [
+                id
+            ];
+            connection.query(sql,values,(err,data) =>{
+                if(err){
+                    res.json({"Mensagem":"erro ao deletar o Paciente"});
+                    console.log(err);
+                }else{
+                    res.json({ "Mensagem": "Paciente deletado com sucesso!" });
+                }
+
+            });
+        }
+    }
+} 
+module.exports = new PacienteController;
